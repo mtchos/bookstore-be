@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/handlers"
 	"log"
 	"net/http"
 	"os"
@@ -127,11 +128,17 @@ func main() {
 	r := mux.NewRouter()
 	r.Use(logger)
 
+	corsOrigins := handlers.AllowedOrigins([]string{"*"})
+	corsMethods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"})
+	corsHeaders := handlers.AllowedHeaders([]string{"Content-Type", "Authorization"})
+
 	r.HandleFunc("/", check).Methods("GET")
 	r.HandleFunc("/books", createBook).Methods("POST")
 	r.HandleFunc("/books", getBooks).Methods("GET")
 
+	handler := handlers.CORS(corsOrigins, corsMethods, corsHeaders)(r)
+
 	port := "8080"
 	fmt.Println("server running on port", port)
-	log.Fatal(http.ListenAndServe(":"+port, r))
+	log.Fatal(http.ListenAndServe(":"+port, handler))
 }
