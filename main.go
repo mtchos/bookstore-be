@@ -132,9 +132,9 @@ func main() {
 	corsMethods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"})
 	corsHeaders := handlers.AllowedHeaders([]string{"Content-Type", "Authorization"})
 
-	r.HandleFunc("/", check).Methods("GET")
-	r.HandleFunc("/books", createBook).Methods("POST")
-	r.HandleFunc("/books", getBooks).Methods("GET")
+	r.HandleFunc("/api", check).Methods("GET")
+	r.HandleFunc("/api/books", createBook).Methods("POST")
+	r.HandleFunc("/api/books", getBooks).Methods("GET")
 
 	handler := handlers.CORS(corsOrigins, corsMethods, corsHeaders)(r)
 
