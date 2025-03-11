@@ -122,6 +122,41 @@ func getBooks(w http.ResponseWriter, _ *http.Request) {
 	}
 }
 
+func deleteBook(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	bookID := vars["id"]
+
+	query := `DELETE FROM books WHERE id = $1`
+
+	result, err := db.Exec(query, bookID)
+	if err != nil {
+		log.Println("error deleting book", err)
+		http.Error(w, "failed to delete book", http.StatusInternalServerError)
+		return
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		log.Println("error checking affected rows", err)
+		http.Error(w, "failed to check affected rows", http.StatusInternalServerError)
+		return
+	}
+
+	if rowsAffected == 0 {
+		log.Printf(`no rows affected after trying to delete book of id %s
+`, bookID)
+		http.Error(w, "failed to delete book", http.StatusInternalServerError)
+	}
+
+	w.Header().Set("Content-Type", "text/plain")
+	w.WriteHeader(http.StatusNoContent)
+	if _, err := w.Write([]byte("book deleted succesfully")); err != nil {
+		log.Println("error writing response message")
+		http.Error(w, "failed to write response message", http.StatusInternalServerError)
+	}
+
+}
+
 func main() {
 	initDB()
 
@@ -135,6 +170,7 @@ func main() {
 	r.HandleFunc("/api", check).Methods("GET")
 	r.HandleFunc("/api/books", createBook).Methods("POST")
 	r.HandleFunc("/api/books", getBooks).Methods("GET")
+	r.HandleFunc("/api/books/{id}", deleteBook).Methods("DELETE")
 
 	handler := handlers.CORS(corsOrigins, corsMethods, corsHeaders)(r)
 
